@@ -6,7 +6,7 @@ This is a simple script that adds a context menu entry to open a directory or fi
 
 ## How to install:
 ___
-1. Download this repo.
+1. Download [this repo](https://github.com/Pawloland/Open-with-Toolbox/archive/refs/heads/master.zip).
 2. Extract downloaded files somewhere on the filesystem. Be aware that the directory you selected can not be deleted or moved after running script `install.ps1`.
 3. Open PowerShell as administrator in a directory where you extracted downloaded files.
 4. Run script `install.ps1` with the following command: `powershell -ExecutionPolicy Bypass -File .\install.ps1`.
