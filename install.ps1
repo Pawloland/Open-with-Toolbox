@@ -65,18 +65,10 @@ function host_sanity_check {
 		# IntelliJ IDEA Community Edition and IntelliJ IDEA Ultimate
 		$script_content = Get-Content "$toolbox_path\scripts\$script" -Tail 1
 		$IDE_path = $script_content.trim().split("%")[2].trim()
-		$tmp = ($IDE_path.trim() -split "\\apps\\")[1] -split "\\"
-		$variant = $tmp[0]
+		$tmp = ($IDE_path.trim() -split "\\Programs\\")[1] -split "\\"
+		$name = $tmp[0] # since toolbox 2.0 full name of the product is already used in IDE's path
 		$script_name = ($script -split ".cmd")[0]
-		#Hardcoded names for some jetbrains products
-		$name = switch ($variant) {
-			"AndroidStudio" { "Android Studio" }
-			"IDEA-C" { "IntelliJ IDEA Community Edition" }
-			"IDEA-U" { "IntelliJ IDEA Ultimate" }
-			"PyCharm-C" { "PyCharm Community" }
-			"PyCharm-P" { "PyCharm Professional" }
-			Default { $variant }
-		}
+		
 		# in windows registry any exe can be used as an icon, and windows will automatically extract the icon from the exe
 		$icon = $IDE_path 
 
@@ -92,12 +84,14 @@ function host_sanity_check {
 
 function create_registry_entries {
 	# create registry entries for each IDE
-
+	# VsMenuJetBrainsToolbox - because when there is VSCode installed, I want the Toolbox entry to be bellow it
+	# and it's easiest to do it alphabetically
+	
 	# background (desktop and explorer folder background)
-		# HKEY_CLASSES_ROOT\Directory\Background\shell\VSMenuJetBrainsToolbox
-		# 	[REG_SZ] ExtendedSubCommandsKey = Directory\ContextMenus\MenuJetBrainsToolbox
-		# 	[REG_SZ] Icon = %LOCALAPPDATA%\JetBrains\Toolbox\bin\jetbrains-toolbox.exe
-		# 	[REG_SZ] MUIVerb = Open with Toolbox
+	# HKEY_CLASSES_ROOT\Directory\Background\shell\VSMenuJetBrainsToolbox
+	# 	[REG_SZ] ExtendedSubCommandsKey = Directory\ContextMenus\MenuJetBrainsToolbox
+	# 	[REG_SZ] Icon = %LOCALAPPDATA%\JetBrains\Toolbox\bin\jetbrains-toolbox.exe
+	# 	[REG_SZ] MUIVerb = Open with Toolbox
 	#
 	echowrapper "Creating background entries..."
 	New-Item -Path "registry::HKEY_CLASSES_ROOT\Directory\Background\shell\" -Name "VSMenuJetBrainsToolbox" | out-null
@@ -109,18 +103,18 @@ function create_registry_entries {
 	# directory (right click on dir icon)
 	# HKEY_CLASSES_ROOT\Directory
 	# 	\ContextMenus\MenuJetBrainsToolbox\shell
-	#		\as
-	#			[REG_SZ] Icon = %LOCALAPPDATA%\JetBrains\Toolbox\apps\AndroidStudio\ch-0\223.7571.182.2231.9532861\bin\studio64.exe
+	#		\studio
+	#			[REG_SZ] Icon = %LOCALAPPDATA%\Programs\Android Studio\bin\studio64.exe
 	#			[REG_SZ] MUIVerb = Android Studio
 	#			\command
 	# 				[REG_EXPAND_SZ] Default = "%windir%\system32\wscript.exe" "nowindow.vbs" "%LOCALAPPDATA%\JetBrains\Toolbox\scripts\studio.cmd" "%V"
-	#		\intellij
-	#			[REG_SZ] Icon = %LOCALAPPDATA%\JetBrains\Toolbox\apps\IDEA-U\ch-0\223.8617.56\bin\idea64.exe
+	#		\idea
+	#			[REG_SZ] Icon = %LOCALAPPDATA%\Programs\IntelliJ IDEA Ultimate\bin\idea64.exe
 	# 			[REG_SZ] MUIVerb = IntelliJ IDEA
 	# 			\command
 	# 				[REG_EXPAND_SZ] Default = "%windir%\system32\wscript.exe" "nowindow.vbs" "%LOCALAPPDATA%\JetBrains\Toolbox\scripts\idea.cmd" "%V"
 	#		\pycharm
-	# 			[REG_SZ] Icon = %LOCALAPPDATA%\JetBrains\Toolbox\apps\PyCharm-P\ch-0\223.8617.48\bin\pycharm64.exe
+	# 			[REG_SZ] Icon = %LOCALAPPDATA%\Programs\PyCharm Professional\bin\pycharm64.exe
 	# 			[REG_SZ] MUIVerb = PyCharm
 	# 			\command
 	#				[REG_EXPAND_SZ] Default = "%windir%\system32\wscript.exe" "nowindow.vbs" "%LOCALAPPDATA%\JetBrains\Toolbox\scripts\pycharm.cmd" "%V"
@@ -153,23 +147,21 @@ function create_registry_entries {
 
 
 	# file (right click on file icon)
-	# VsMenuJetBrainsToolbox - because when there is VSCode installed, I want the Toolbox entry to be bellow it
-	# and it's easiest to do it alphabetically
 	# 
 	# HKEY_CLASSES_ROOT\*
 	#	\ContextMenus\MenuJetBrainsToolbox\shell
-	#		\as
-	# 			[REG_SZ] Icon = %LOCALAPPDATA%\JetBrains\Toolbox\apps\AndroidStudio\ch-0\223.7571.182.2231.9532861\bin\studio64.exe
+	#		\studio
+	# 			[REG_SZ] Icon = %LOCALAPPDATA%\Programs\Android Studio\bin\studio64.exe
 	# 			[REG_SZ] MUIVerb = Android Studio
 	# 			\command
 	#				[REG_EXPAND_SZ] Default = "%windir%\system32\wscript.exe" "nowindow.vbs" "%LOCALAPPDATA%\JetBrains\Toolbox\scripts\studio.cmd" "%1"
-	# 		\intellij
-	# 			[REG_SZ] Icon =%LOCALAPPDATA%\JetBrains\Toolbox\apps\IDEA-U\ch-0\223.8617.56\bin\idea64.exe
+	# 		\idea
+	# 			[REG_SZ] Icon = %LOCALAPPDATA%\Programs\IntelliJ IDEA Ultimate\bin\idea64.exe
 	# 			[REG_SZ] MUIVerb = IntelliJ IDEA
 	# 			\command
 	# 				[REG_EXPAND_SZ] Default = "%windir%\system32\wscript.exe" "nowindow.vbs" "%LOCALAPPDATA%\JetBrains\Toolbox\scripts\idea.cmd" "%1"
 	# 		\pycharm
-	# 			[REG_SZ] Icon = %LOCALAPPDATA%\JetBrains\Toolbox\apps\PyCharm-P\ch-0\223.8617.48\bin\pycharm64.exe
+	# 			[REG_SZ] Icon = %LOCALAPPDATA%\Programs\PyCharm Professional\bin\pycharm64.exe
 	# 			[REG_SZ] MUIVerb = PyCharm
 	# 			\command
 	# 				[REG_EXPAND_SZ] Default = "%windir%\system32\wscript.exe" "nowindow.vbs" "%LOCALAPPDATA%\JetBrains\Toolbox\scripts\pycharm.cmd" "%1"
